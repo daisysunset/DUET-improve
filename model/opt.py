@@ -4,7 +4,7 @@ def get_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', default='CUB', help='FLO, CUB')
     parser.add_argument('--root', default='./', help='path to project')
-    parser.add_argument('--image_root', default='/home/hyf/data/', type=str, metavar='PATH',
+    parser.add_argument('--image_root', default='/root/DUET-main/', type=str, metavar='PATH',
                         help='path to image root')
     parser.add_argument('--matdataset', default=True, help='Data in matlab format')
     parser.add_argument('--image_embedding', default='res101')

@@ -329,9 +329,9 @@ class ImageFilelist(torch.utils.data.Dataset):
         #  TODO:sun 数据集用swin 其他的用deit
         if opt.model_name == "Multi_attention_Model":
             if opt.dataset == "AWA2" or opt.dataset == "CUB":
-                self.feature_extractor = DeiTFeatureExtractor.from_pretrained("/home/hyf/data/PLMs/deit-base-distilled-patch16-224")
+                self.feature_extractor = DeiTFeatureExtractor.from_pretrained("/root/DUET-main/PLMs/deit-base-distilled-patch16-224")
             elif opt.dataset == "SUN":
-                self.feature_extractor = AutoFeatureExtractor.from_pretrained("/home/hyf/data/PLMs/swin")
+                self.feature_extractor = AutoFeatureExtractor.from_pretrained("/root/DUET-main/PLMs/swin")
         # elif opt.model_name == "vitModel" or opt.model_name == "LXMERT_vitModel_textmask" or opt.model_name == "LXMERT_vitModel_text":
         #     self.feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224-in21k')
         # elif opt.model_name == "clipvit":

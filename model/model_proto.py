@@ -41,16 +41,16 @@ class Multi_attention_Model(nn.Module):
         elif opt.dataset == "SUN":
             self.fc_image = nn.Linear(768, 102)
         
-        self.bert = BertModel.from_pretrained('/home/hyf/data/PLMs/bert-base-uncased')
-        self.tokenizer = BertTokenizer.from_pretrained("/home/hyf/data/PLMs/bert-base-uncased", do_lower_case=True)
+        self.bert = BertModel.from_pretrained('/root/DUET-main/PLMs/bert-base-uncased')
+        self.tokenizer = BertTokenizer.from_pretrained("/root/DUET-main/PLMs/bert-base-uncased", do_lower_case=True)
 
         self.config = BertConfig()
         self.cls = BertOnlyMLMHead(self.config)
         
         if opt.dataset == "AWA2" or opt.dataset == "CUB":
-            self.deit = DeiTForImageClassification.from_pretrained("/home/hyf/data/PLMs/deit-base-distilled-patch16-224")
+            self.deit = DeiTForImageClassification.from_pretrained("/root/DUET-main/PLMs/deit-base-distilled-patch16-224")
         elif opt.dataset == "SUN":
-            self.deit = SwinForImageClassification.from_pretrained("/home/hyf/data/PLMs/swin")
+            self.deit = SwinForImageClassification.from_pretrained("/root/DUET-main/PLMs/swin")
 
 
         self.lxmert_config = LxmertConfig()

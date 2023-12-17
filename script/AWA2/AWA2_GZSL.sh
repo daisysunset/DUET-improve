@@ -17,7 +17,7 @@ do
                         # 0.01
                         for construct_loss_weight in 0.01
                         do
-                            CUDA_VISIBLE_DEVICES=0 python ./model/main.py \
+                            CUDA_VISIBLE_DEVICES=1 python ./model/main.py \
                             --dataset AWA2 \
                             --calibrated_stacking 0.8 \
                             --cuda --nepoch 30 --batch_size 10 --train_id 1 --manualSeed ${seed} \
