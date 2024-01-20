@@ -14,7 +14,7 @@ do
                 # 原 0.01
                 for construct_loss_weight in 0.01
                     do
-                    CUDA_VISIBLE_DEVICES=2 python ./model/main.py \
+                    CUDA_VISIBLE_DEVICES=1 python ./model/main.py \
                     --dataset SUN \
                     --calibrated_stacking 0.4 \
                     --cuda --nepoch 30 --batch_size 8 --train_id 107 --manualSeed 2347 \
@@ -22,7 +22,7 @@ do
                     --xe 1 --attri 1e-2 --regular 5e-5  --all \
                     --l_xe 1 --l_attri 1e-1  --l_regular 4e-2 \
                     --cpt 1e-9 --use_group --gzsl \
-                    --patient 7 --loss_function two_loss \
+                    --patient 15 --loss_function two_loss \
                     --model_name Multi_attention_Model \
                     --mask_pro ${mask_pro} \
                     --mask_loss_xishu ${mask_loss_xishu} \

@@ -1,5 +1,5 @@
 #!/bin/sh
-for seed in 42 2021 2022 2023 2024 3131 666
+for seed in 2021 2022 2023
 do
     for gradient_time in 10
     do
@@ -18,10 +18,10 @@ do
                         # bs = 7
                         for construct_loss_weight in 0.001
                             do
-                            CUDA_VISIBLE_DEVICES=0 python ./model/main.py \
+                            CUDA_VISIBLE_DEVICES=2 python ./model/main.py \
                             --dataset CUB \
                             --calibrated_stacking 0.7 \
-                            --cuda --nepoch 30 --batch_size 7 --train_id 107 --manualSeed ${seed} \
+                            --cuda --nepoch 30 --batch_size 7 --train_id 118 --manualSeed ${seed} \
                             --pretrain_epoch 5  --pretrain_lr 1e-4 --classifier_lr 3e-5 \
                             --xe 1 --attri 1e-2 --regular 5e-5 \
                             --l_xe 1 --l_attri 1e-1  --l_regular 4e-2 \

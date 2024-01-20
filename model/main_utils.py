@@ -232,15 +232,16 @@ def get_loader(opt, data):
                     dataset_train,
                     num_replicas=torch.distributed.get_world_size(),
                     rank=torch.distributed.get_rank(),
-                    seed=opt.manualSeed,
+                    #seed=opt.manualSeed,
         )
-        trainloader = torch.utils.data.DataLoader(dataset=dataset_train, batch_sampler=sampler, num_workers=4, pin_memory=True)
+        trainloader = torch.utils.data.DataLoader(dataset=dataset_train, batch_size = opt.n_batch, sampler=sampler, num_workers=4, pin_memory=True)
         # exit()
     elif opt.train_mode == 'random':
         trainloader = torch.utils.data.DataLoader(
             dataset_train,
             batch_size=opt.batch_size, shuffle=True,
             num_workers=4, pin_memory=True)
+        sampler = None
     # print('dataset_train.__len__():', dataset_train.__len__())
     # exit()
     dataset_test_unseen = ImageFilelist(opt, data_inf=data,
@@ -279,7 +280,7 @@ def get_loader(opt, data):
         dataset_visual,
         batch_size=opt.batch_size, shuffle=False,
         num_workers=4, pin_memory=True)
-    return trainloader, testloader_unseen, testloader_seen, visloader
+    return trainloader, testloader_unseen, testloader_seen, visloader, sampler
 
 def get_middle_graph(weight_cpt, model):
     middle_graph = None

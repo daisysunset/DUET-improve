@@ -1,8 +1,8 @@
 #!/bin/sh
 
-for seed in 2023
+for seed in 2001
 do
-    for gradient_time in 5
+    for gradient_time in 20
     do
         for sc_loss in 0.001
         do

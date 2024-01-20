@@ -33,7 +33,7 @@ opt = get_opt()
 # logger
 zsl = "gzsl" if opt.gzsl else "zsl"
 log_name = zsl +"our_temp"+str(opt.temperature)+"_" + "sc_loss" +str(opt.sc_loss) + "_mask_pro"+ str(opt.mask_pro)+"_attri"+str(opt.attri)+"_contrast"+str(opt.construct_loss_weight) + "lr" +str(opt.classifier_lr) + "_miss" + str(opt.attribute_miss)+"_masklosss_xishu"+str(opt.mask_loss_xishu) + "_gradient" + str(opt.gradient_time) + "_seed" + str(opt.manualSeed) + "_bs" + str(opt.batch_size)
-log_path_name = os.path.join('./log',opt.dataset,time.asctime().replace(' ','_'))
+log_path_name = os.path.join('./log','roberta_swin'+opt.dataset,time.asctime().replace(' ','_'))
 os.makedirs(log_path_name,exist_ok = True)
 logger = Log(log_path_name, log_name).get_logger()
 logger.info(json.dumps(vars(opt)))
@@ -62,20 +62,20 @@ def main():
 
     # prepare the attribute labels
     class_attribute = data.attribute
-    opt.attribute_binary = data.attribute_binary
+    opt.attribute_binary = data.attribute_binary#CUB [200,312]
     attribute_seen_binary = prepare_attri_label(opt.attribute_binary, data.seenclasses).t()
-    data.attribute_seen_binary = attribute_seen_binary
+    data.attribute_seen_binary = attribute_seen_binary#[150,312]
 
     if opt.dataset !="AWA2":
         with open(os.path.join("./cache/", opt.dataset, "mapping.json"),"r") as f:
-            mapping = json.load(f)
+            mapping = json.load(f)#[66]
     else:
         mapping = {}
-    attributeid2length = dict()
+    attributeid2length = dict()#[312]
     tokenizer = None
     if opt.dataset == "CUB":
-        mask_for_predict = torch.zeros(30522)
-        tokenizer = BertTokenizer.from_pretrained("/home/hyf/data/PLMs/bert-base-uncased", do_lower_case=True)
+        mask_for_predict = torch.zeros(30522)#sum=96
+        tokenizer = BertTokenizer.from_pretrained(opt.langMtokenizer_path, do_lower_case=True)
         for i in range(opt.attribute_binary.shape[1]):
             name = data.attri_name[i].split("::")[1].replace("-"," ").replace("_"," ").split("(")[0].strip()
             if i in mapping:
@@ -85,6 +85,7 @@ def main():
             mask_for_predict[indexs] = 1
             length = len(attribute_tokenizer)
             attributeid2length[i] = length
+    #import pdb;pdb.set_trace()
 
     attribute_zsl = prepare_attri_label(class_attribute, data.unseenclasses).cuda() #(312,50)
     attribute_seen = prepare_attri_label(class_attribute, data.seenclasses).cuda()  #(312,150)
@@ -100,7 +101,7 @@ def main():
                 ManhattanDistance[i][j] = np.sum(np.fabs(attribute_deal[i] - attribute_deal[j]))
     ManhattanDistance=torch.pow(ManhattanDistance, 2)
     # Dataloader for train, test, visual
-    trainloader, testloader_unseen, testloader_seen, visloader = get_loader(opt, data)
+    trainloader, testloader_unseen, testloader_seen, visloader, _  = get_loader(opt, data)
 
     # initialize model
     logger.info('Create Model...')
@@ -125,8 +126,11 @@ def main():
     attribute_tfidf["times"] = np.zeros((attribute_seen_binary.shape[1]))
 
     # load image dataset pixel（3，224，224）
-    with open(os.path.join("./cache", opt.dataset, "id2imagepixel.pkl"),"rb",) as f:
+    with open(os.path.join("./cache", opt.dataset, "id2imagepixel.pkl"),"rb",) as f:#id2imagepixel_deit.pkl
         id2imagepixel = pickle.load(f)
+    
+    # assert id2imagepixel.keys() == id2imagepixel_deit.keys() equal
+    # assert torch.equal(id2imagepixel[0],id2imagepixel_deit[0]) not equal
     
     # attribute's index to prompt
     with open(os.path.join("./cache/", opt.dataset, "attributeindex2prompt.json"),"r") as f:
@@ -139,14 +143,14 @@ def main():
             prompt2attributeindex[value].append(int(key))
 
     for i in range(attribute_seen_binary.shape[1]):
-        times = len(np.where(attribute_seen_binary[:,i].numpy() == 1)[0])
-        if attributeindex2prompt[str(i)] in ['habit','diet','behaviour','role']:
+        times = len(np.where(attribute_seen_binary[:,i].numpy() == 1)[0])#attribute show in how many classes
+        if attributeindex2prompt[str(i)] in ['habit','diet','behaviour','role']:#attributeindex to prompt class
             times = times + 3
         if times == 0:
             continue
         attribute_tfidf["frequency"][i] = 1 / times
         attribute_tfidf["times"][i] = times
-
+    #import pdb;pdb.set_trace()
     ori_seenclass2imageindexs = dict()
     for seenclass in data.seenclasses:
         ori_seenclass2imageindexs[seenclass.item()] = np.where(data.label == seenclass.item())[0].tolist()
@@ -288,7 +292,7 @@ def main():
                             if patient > opt.patient:
                                 print("Early stopping with best_acc: ", result_zsl.best_acc, "and val_acc for this epoch: ", acc_ZSL, "...")
                                 sys.exit()
-                        result_zsl.update(epoch+1, acc_ZSL)
+                        result_zsl.update(epoch+1, acc_ZSL, i_realindex + 1)
                         logger.info('\n[Epoch {}] ZSL test accuracy is {:.1f}%, Best_acc [{:.1f}% | Epoch-{}]'.format(epoch+1, acc_ZSL, result_zsl.best_acc, result_zsl.best_iter))
                     else:
                         # test gzsl
@@ -323,6 +327,9 @@ def main():
                         
                         if H_max >= result_gzsl.best_acc:
                             patient = 0
+                            model_save_path = os.path.join('./out/{}_GZSL_id_{}.pth'.format(opt.dataset, opt.train_id))
+                            torch.save(model_baseline.state_dict(), model_save_path)
+                            print('model saved to:', str(model_save_path))
                         else:
                             patient = patient + 1
                             logger.info("Counter {} of {}".format(patient,opt.patient))

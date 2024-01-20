@@ -215,8 +215,11 @@ def prun(matrix_now,mask_index,attributeid2length,attribute_tfidf):
     now_length = 114 + attributeid2length[mask_index]
 
     delete_matrix_index = np.where(matrix_now==1)[0]
-    matrix_tfidf = min_max_scaler.fit_transform(attribute_tfidf["frequency"][delete_matrix_index].reshape(-1,1)).reshape(-1)
-    try_add_index = np.random.choice(a = delete_matrix_index, size = min(30,len(delete_matrix_index)-3), replace = False, p = matrix_tfidf / matrix_tfidf.sum())
+    try:
+        matrix_tfidf = min_max_scaler.fit_transform(attribute_tfidf["frequency"][delete_matrix_index].reshape(-1,1)).reshape(-1)
+        try_add_index = np.random.choice(a = delete_matrix_index, size = min(30,len(delete_matrix_index)-3), replace = False, p = matrix_tfidf / matrix_tfidf.sum())
+    except:
+        import pdb; pdb.set_trace()
     for i in try_add_index:
         if i != mask_index:
             prun_matrix[i] = 1
@@ -242,8 +245,14 @@ def prepare_original_sample(matrix, index, opt, attribute_tfidf, data, attribute
     while((len(negative_index2covers) == 0 or len(needmask_index) == 0) and cycle<3):
         # 通过其中一种mask策略来选择要mask的属性
         if opt.mask_way == 'newmask':
-            matrix_tfidf = min_max_scaler.fit_transform(attribute_tfidf["frequency"][matrix_index].reshape(-1,1)).reshape(-1)
-            mask_index = np.random.choice(a = matrix_index, size = 1, replace = True, p = matrix_tfidf / matrix_tfidf.sum()).item()
+            if opt.prefer_high:
+                matrix_tfidf = min_max_scaler.fit_transform(attribute_tfidf["times"][matrix_index].reshape(-1,1)).reshape(-1)
+            else:
+                matrix_tfidf = min_max_scaler.fit_transform(attribute_tfidf["frequency"][matrix_index].reshape(-1,1)).reshape(-1)
+            try:
+                mask_index = np.random.choice(a = matrix_index, size = 1, replace = True, p = matrix_tfidf / matrix_tfidf.sum()).item()
+            except:
+                import pdb; pdb.set_trace()
         else:
             random_number = random.randint(1, len(matrix_index)) - 1
             mask_index = matrix_index[random_number]

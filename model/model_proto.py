@@ -5,7 +5,7 @@ import math
 import timm
 import numpy as np
 from sklearn import preprocessing
-from transformers import CLIPProcessor, CLIPVisionModel, BertTokenizer, LxmertTokenizer, ViTFeatureExtractor, DeiTFeatureExtractor
+from transformers import CLIPProcessor, CLIPVisionModel, AutoModel, RobertaModel, RobertaTokenizer, BertTokenizer, LxmertTokenizer, ViTFeatureExtractor, DeiTFeatureExtractor
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 from torchvision import models
 import torch.nn.functional as F
@@ -41,16 +41,17 @@ class Multi_attention_Model(nn.Module):
         elif opt.dataset == "SUN":
             self.fc_image = nn.Linear(768, 102)
         
-        self.bert = BertModel.from_pretrained('/root/DUET-main/PLMs/bert-base-uncased')
-        self.tokenizer = BertTokenizer.from_pretrained("/root/DUET-main/PLMs/bert-base-uncased", do_lower_case=True)
+        # self.bert = BertModel.from_pretrained('/root/DUET-main/PLMs/bert-base-uncased')
+        self.bert = AutoModel.from_pretrained(opt.langM_path)
+        self.tokenizer = BertTokenizer.from_pretrained(opt.langMtokenizer_path, do_lower_case=True)
 
         self.config = BertConfig()
         self.cls = BertOnlyMLMHead(self.config)
         
         if opt.dataset == "AWA2" or opt.dataset == "CUB":
-            self.deit = DeiTForImageClassification.from_pretrained("/root/DUET-main/PLMs/deit-base-distilled-patch16-224")
+            self.deit = DeiTForImageClassification.from_pretrained(opt.visualM_deit_path)
         elif opt.dataset == "SUN":
-            self.deit = SwinForImageClassification.from_pretrained("/root/DUET-main/PLMs/swin")
+            self.deit = SwinForImageClassification.from_pretrained(opt.visualM_swin_path)
 
 
         self.lxmert_config = LxmertConfig()
@@ -143,8 +144,10 @@ class Multi_attention_Model(nn.Module):
         if is_mask == True:
             output_mask = self.cls(lang_feats)
             for i in range(len(texts)):
-                loss_mask = loss_mask + self.criterion(output_mask[i], label[i]) * attribute_deal[batch_target[i]][mask_indexs[i]] * 3
-        
+                try:
+                    loss_mask = loss_mask + self.criterion(output_mask[i], label[i]) * attribute_deal[batch_target[i]][mask_indexs[i]] * 3
+                except:
+                    import pdb;pdb.set_trace()
         # contrast loss
         if contrast:  
             ori_embedding = self.contrast_proj(torch.mean(lang_feats[0][mask_matrix[1][np.where(mask_matrix[0]==0)[0]]],dim=0).unsqueeze(0))

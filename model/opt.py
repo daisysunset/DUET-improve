@@ -89,6 +89,13 @@ def get_opt():
     parser.add_argument('--attribute_miss', type=float, default=0.5)
     parser.add_argument('--gradient_time', type=int, default=1)
     parser.add_argument('--max_length', type=int, default=150)
+
+    # dsy add
+    parser.add_argument('--prefer_high',action='store_true')
+    parser.add_argument('--langM_path', type=str, default='/root/DUET-main/PLMs/bert-base-uncased')
+    parser.add_argument('--langMtokenizer_path', type=str, default='/root/DUET-main/PLMs/bert-base-uncased')
+    parser.add_argument('--visualM_deit_path', type=str, default="/root/DUET-main/PLMs/deit-base-distilled-patch16-224")   
+    parser.add_argument('--visualM_swin_path', type=str, default="/root/DUET-main/PLMs/swin")   
     
     opt = parser.parse_args()
     opt.dataroot = opt.root + 'data'
